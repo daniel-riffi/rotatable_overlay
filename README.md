@@ -31,7 +31,7 @@ RotatableOverlay(
 
 ### Example
 
-![rotatable_overlay_example](https://github.com/daniel-riffi/rotatable_overlay/assets/48239596/1505c107-0c57-4eb5-a0d7-e75b1a95ee9a)
+![rotatable_overlay_example](https://github.com/daniel-riffi/rotatable_overlay/assets/48239596/a8d96979-530e-4985-9f77-9bd622e20547)
 
 ```dart
 class App extends StatelessWidget {
