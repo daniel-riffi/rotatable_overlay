@@ -3,20 +3,39 @@ import 'package:flutter/material.dart';
 import 'package:rotatable_overlay/src/angle.dart';
 import 'package:rotatable_overlay/src/angle_range.dart';
 
+/// A flutter widget that makes its child rotatable by dragging around its center.
 class RotatableOverlay extends StatefulWidget {
-  final List<Angle> snaps;
+  
+  /// A list of angles to which the rotation snaps.
+  final List<Angle>? snaps;
+
+  /// Determines how close the rotation has to be to a snap angle in order to snap.
   final Angle? snapDelta;
+
+  /// Whether the rotation will animate to the nearest snap angle when stopped dragging.
   final bool shouldSnapOnEnd;
+
+  /// Sets the initial rotation of the child.
   final Angle initialRotation;
+
+  /// Child widget that will be rotatable.
   final Widget child;
+
+  /// Determines how long the animation will take if [shouldSnapOnEnd] is true.
   final Duration snapBackDuration;
+
+  /// Callback that is called when the rotation snaps.
   final void Function(Angle)? onSnap;
+
+  /// Callback that is called when the angle of the rotation changes.
   final void Function(Angle)? onAngleChanged;
+
+  /// Callback that is called when animation to the nearest snap angle is finished.
   final VoidCallback? onSnapAnimationEnd;
 
   RotatableOverlay({
     super.key,
-    this.snaps = const [],
+    this.snaps,
     this.snapDelta,
     this.shouldSnapOnEnd = false,
     this.snapBackDuration = const Duration(seconds: 2),
@@ -25,7 +44,7 @@ class RotatableOverlay extends StatefulWidget {
     this.onAngleChanged,
     this.onSnapAnimationEnd,
     required this.child,
-  }) : assert(shouldSnapOnEnd && snaps.isNotEmpty || !shouldSnapOnEnd);
+  }) : assert(shouldSnapOnEnd && (snaps?.isNotEmpty ?? false) || !shouldSnapOnEnd);
 
   @override
   State<RotatableOverlay> createState() => _RotatableOverlayState();
@@ -56,7 +75,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
 
     _snapDelta = widget.snapDelta ?? Angle.zero;
 
-    _snaps = widget.snaps;
+    _snaps = widget.snaps ?? [];
     _snaps.sort((a, b) => a.compareTo(b));
 
     _controller.addStatusListener((status) {

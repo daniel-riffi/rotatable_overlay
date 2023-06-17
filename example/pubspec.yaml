@@ -1,0 +1,24 @@
+name: example
+description: RotatableOverlay example
+
+version: 0.0.2
+
+environment:
+  sdk: '>=3.0.3 <4.0.0'
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  rotatable_overlay:
+    path: ../
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true 
+
+publish_to: none

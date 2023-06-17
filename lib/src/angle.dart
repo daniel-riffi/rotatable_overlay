@@ -1,6 +1,8 @@
 import 'dart:core';
 import 'dart:math' as math;
 
+/// Represents an angle.
+/// Internally the angle is stored in radians.
 class Angle implements Comparable<Angle> {
   late double _radians;
 
@@ -30,6 +32,8 @@ class Angle implements Comparable<Angle> {
     return Angle(radians: radians);
   }
 
+  /// Returns the difference angle between this and [other].
+  /// The returned angle can never be over 180 degrees.
   Angle difference(Angle other) {
     // min{|α−β|, 360° −|α−β|}
     return Angle(radians: math.min((_radians - other.radians).abs(), 2*math.pi - (_radians - other.radians).abs()));

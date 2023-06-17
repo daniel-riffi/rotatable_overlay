@@ -1,6 +1,6 @@
 name: rotatable_overlay
-description: A flutter widget that makes its child rotatable by dragging
-version: 0.0.1
+description: A flutter widget that makes its child rotatable by dragging around its center
+version: 0.0.2
 repository: https://github.com/daniel-riffi/rotatable_overlay
 
 environment:

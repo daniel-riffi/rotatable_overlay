@@ -1,41 +1,10 @@
-## RotatableOverlay
+import 'package:flutter/material.dart';
+import 'package:rotatable_overlay/rotatable_overlay.dart';
 
-[![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
+void main() {
+  runApp(const App());
+}
 
-A flutter widget that makes its child rotatable by dragging around its center.
-
-### Usage
-
-```dart
-RotatableOverlay(
-    initialRotation: Angle.zero,
-    child: Container(
-        height: 50,
-        width: 50,
-        color: Colors.green,
-    ),
-)
-```
-
-## Parameters
-
-| Parameter | Description |
-|---|---|
-| `child` | Child widget that will be rotatable |
-| `initialRotation` | Sets the initial rotation of the child |
-| `snaps` | A list of angles to which the rotation snaps |
-| `snapDelta` | Determines how close the rotation has to be to a snap angle in order to snap |
-| `shouldSnapOnEnd` | If `true` the rotation will animate to the nearest snap angle when stopped dragging |
-| `snapBackDuration` | Determines how long the animation will take if `shouldSnapOnEnd` is `true` |
-| `onSnap` | Callback that is called when the rotation snaps |
-| `onAngleChanged` | Callback that is called when the angle of the rotation changes |
-| `onSnapAnimationEnd` | Callback that is called when animation to the nearest snap angle is finished |
-
-### Example
-
-![rotatable_overlay_example](https://github.com/daniel-riffi/rotatable_overlay/assets/48239596/a8d96979-530e-4985-9f77-9bd622e20547)
-
-```dart
 class App extends StatelessWidget {
   const App({super.key});
 
@@ -89,4 +58,3 @@ class App extends StatelessWidget {
     );
   }
 }
-```
