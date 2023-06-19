@@ -93,3 +93,4 @@ class App extends StatelessWidget {
 ### Contact
 
 If you find any bugs or have ideas for new features, feel free to send me an email! 👋
+📧 riffert.daniel@gmail.com
