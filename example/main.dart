@@ -16,7 +16,6 @@ class App extends StatelessWidget {
         body: SafeArea(
           child: Center(
             child: RotatableOverlay(
-              initialRotation: Angle.zero,
               snaps: [
                 Angle.degrees(0),
                 Angle.degrees(90),

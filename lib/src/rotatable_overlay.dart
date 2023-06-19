@@ -16,7 +16,7 @@ class RotatableOverlay extends StatefulWidget {
   final bool shouldSnapOnEnd;
 
   /// Sets the initial rotation of the child.
-  final Angle initialRotation;
+  final Angle? initialRotation;
 
   /// Child widget that will be rotatable.
   final Widget child;
@@ -39,7 +39,7 @@ class RotatableOverlay extends StatefulWidget {
     this.snapDelta,
     this.shouldSnapOnEnd = false,
     this.snapBackDuration = const Duration(seconds: 2),
-    required this.initialRotation,
+    this.initialRotation,
     this.onSnap,
     this.onAngleChanged,
     this.onSnapAnimationEnd,
@@ -69,9 +69,9 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
 
   @override
   void initState() {
-    _childAngle = widget.initialRotation;
+    _childAngle = widget.initialRotation ?? Angle.zero;
     _childAngleSnapped = widget.initialRotation;
-    _lastChangeAngle = widget.initialRotation;
+    _lastChangeAngle = _childAngle;
 
     _snapDelta = widget.snapDelta ?? Angle.zero;
 

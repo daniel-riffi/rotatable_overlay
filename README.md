@@ -8,7 +8,6 @@ A flutter widget that makes its child rotatable by dragging around its center.
 
 ```dart
 RotatableOverlay(
-    initialRotation: Angle.zero,
     child: Container(
         height: 50,
         width: 50,
@@ -17,7 +16,7 @@ RotatableOverlay(
 )
 ```
 
-## Parameters
+### Parameters
 
 | Parameter | Description |
 |---|---|
@@ -90,3 +89,7 @@ class App extends StatelessWidget {
   }
 }
 ```
+
+### Contact
+
+If you find any bugs or have ideas for new features, feel free to send me an email! 👋
