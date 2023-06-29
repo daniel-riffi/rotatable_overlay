@@ -49,12 +49,30 @@ class Angle implements Comparable<Angle> {
     return Angle(radians: newRadians);
   }
 
+  Angle operator /(num divisor) {
+    var newRadians = _radians / divisor;
+    return Angle(radians: newRadians);
+  }
+
+  Angle operator *(num factor) {
+    var newRadians = _radians * factor;
+    return Angle(radians: newRadians);
+  }
+
   bool operator >(Angle other) {
     return _radians > other.radians;
   }
 
   bool operator <(Angle other) {
     return _radians < other.radians;
+  }
+
+  bool operator >=(Angle other) {
+    return _radians >= other.radians;
+  }
+
+  bool operator <=(Angle other) {
+    return _radians <= other.radians;
   }
 
   @override

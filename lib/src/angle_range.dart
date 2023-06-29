@@ -5,7 +5,9 @@ class AngleRange {
   Angle from;
   Angle to;
 
-  Angle get span => from - to;
+  Angle get span => to - from;
+
+  Angle get mid => from + span / 2;
 
   AngleRange({required this.from, required this.to});
 
@@ -18,9 +20,9 @@ class AngleRange {
   /// Note: [from] can be greater than [to], but then the range spans over the angle zero
   bool isInRange(Angle angle) {
     if (from < to) {
-      return from < angle && angle < to;
+      return from <= angle && angle <= to;
     } else if (from > to) {
-      return from < angle || angle < to;
+      return from <= angle || angle <= to;
     }
     return angle == from;
   }

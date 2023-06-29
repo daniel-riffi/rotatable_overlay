@@ -1,11 +1,11 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:rotatable_overlay/src/angle.dart';
 import 'package:rotatable_overlay/src/angle_range.dart';
 
 /// A flutter widget that makes its child rotatable by dragging around its center.
 class RotatableOverlay extends StatefulWidget {
-  
   /// A list of angles to which the rotation snaps.
   final List<Angle>? snaps;
 
@@ -100,6 +100,23 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
   }
 
   @override
+  void didUpdateWidget(covariant RotatableOverlay oldWidget) {
+    if (oldWidget.initialRotation != widget.initialRotation) {
+      _childAngle = widget.initialRotation ?? Angle.zero;
+      _childAngleSnapped = widget.initialRotation;
+      _lastChangeAngle = _childAngle;
+    }
+    if (oldWidget.snapDelta != widget.snapDelta) {
+      _snapDelta = widget.snapDelta ?? Angle.zero;
+    }
+    if (!listEquals(oldWidget.snaps, widget.snaps)) {
+      _snaps = widget.snaps ?? [];
+      _snaps.sort((a, b) => a.compareTo(b));
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -140,7 +157,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
     var dy = details.globalPosition.dy - _centerOfChild.dy;
     var dx = details.globalPosition.dx - _centerOfChild.dx;
     var newMouseAngle = Angle.radians(-math.atan2(dy, dx));
-    
+
     var movedAngle = _mouseAngle - newMouseAngle;
 
     var newChildAngle = _childAngle - movedAngle;
