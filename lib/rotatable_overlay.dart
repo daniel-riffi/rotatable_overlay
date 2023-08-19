@@ -1,3 +1,3 @@
-export 'src/angle.dart';
-export 'src/angle_range.dart';
 export 'src/rotatable_overlay.dart';
+
+export 'package:angle_utils/angle_utils.dart';

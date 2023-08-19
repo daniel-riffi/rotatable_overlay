@@ -1,3 +1,6 @@
+## 0.0.5
+- moved Angle and AngleRange class to angle_utils package
+
 ## 0.0.4
 - implemented didUpdateWidget and made some changes to angle class
 

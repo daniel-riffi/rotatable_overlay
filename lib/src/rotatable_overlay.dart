@@ -1,8 +1,7 @@
 import 'dart:math' as math;
+import 'package:angle_utils/angle_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:rotatable_overlay/src/angle.dart';
-import 'package:rotatable_overlay/src/angle_range.dart';
 
 /// A flutter widget that makes its child rotatable by dragging around its center.
 class RotatableOverlay extends StatefulWidget {
@@ -51,7 +50,7 @@ class RotatableOverlay extends StatefulWidget {
 }
 
 class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerProviderStateMixin {
-  Angle _mouseAngle = Angle.zero;
+  Angle _mouseAngle = Angle.zero();
 
   late Angle _childAngle;
   late Angle? _childAngleSnapped;
@@ -61,6 +60,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
   late Angle _lastChangeAngle;
 
   late List<Angle> _snaps;
+  late List<AngleRange> _snapRanges;
 
   late final AnimationController _controller =
       AnimationController(vsync: this, duration: widget.snapBackDuration, upperBound: 4 * math.pi);
@@ -69,14 +69,21 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
 
   @override
   void initState() {
-    _childAngle = widget.initialRotation ?? Angle.zero;
+    _childAngle = widget.initialRotation ?? Angle.zero();
     _childAngleSnapped = widget.initialRotation;
     _lastChangeAngle = _childAngle;
 
-    _snapDelta = widget.snapDelta ?? Angle.zero;
+    _snapDelta = widget.snapDelta ?? Angle.zero();
 
     _snaps = widget.snaps ?? [];
     _snaps.sort((a, b) => a.compareTo(b));
+
+    _snapRanges = _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _centerOfChild = (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero) +
+          Offset((context.size!.width / 2), (context.size!.height / 2));
+    });
 
     _controller.addStatusListener((status) {
       if (status.index == 3) {
@@ -87,7 +94,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
     });
 
     _controller.addListener(() {
-      _childAngle = Angle.radians(_controller.value);
+      _childAngle = Angle.radians(_controller.value).normalized;
       _childAngleSnapped = _childAngle;
 
       if ((_childAngle.degrees - _lastChangeAngle.degrees).abs() >= 1) {
@@ -102,17 +109,25 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
   @override
   void didUpdateWidget(covariant RotatableOverlay oldWidget) {
     if (oldWidget.initialRotation != widget.initialRotation) {
-      _childAngle = widget.initialRotation ?? Angle.zero;
+      _childAngle = widget.initialRotation ?? Angle.zero();
       _childAngleSnapped = widget.initialRotation;
       _lastChangeAngle = _childAngle;
     }
     if (oldWidget.snapDelta != widget.snapDelta) {
-      _snapDelta = widget.snapDelta ?? Angle.zero;
+      _snapDelta = widget.snapDelta ?? Angle.zero();
+      _snapRanges = _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
     }
     if (!listEquals(oldWidget.snaps, widget.snaps)) {
       _snaps = widget.snaps ?? [];
       _snaps.sort((a, b) => a.compareTo(b));
+      _snapRanges = _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _centerOfChild = (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero) +
+          Offset((context.size!.width / 2), (context.size!.height / 2));
+    });
+
     super.didUpdateWidget(oldWidget);
   }
 
@@ -124,11 +139,6 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      _centerOfChild = (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero) +
-          Offset((context.size!.width / 2), (context.size!.height / 2));
-    });
-
     return GestureDetector(
       onPanStart: _onPanStart,
       onPanUpdate: _onPanUpdate,
@@ -137,7 +147,10 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
         animation: _controller,
         builder: (_, child) {
           var angle = _controller.isAnimating ? Angle.radians(_controller.value) : _childAngleSnapped ?? _childAngle;
-          return Transform.rotate(angle: angle.supplement.standardRadians, child: child);
+          return Transform.rotate(
+            angle: (Angle.full() - angle).radians,
+            child: child,
+          );
         },
         child: widget.child,
       ),
@@ -147,7 +160,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
   void _onPanStart(DragStartDetails details) {
     var dy = details.globalPosition.dy - _centerOfChild.dy;
     var dx = details.globalPosition.dx - _centerOfChild.dx;
-    var newMouseAngle = Angle.radians(-math.atan2(dy, dx));
+    var newMouseAngle = Angle.atan2(dy, dx);
     setState(() {
       _mouseAngle = newMouseAngle;
     });
@@ -156,25 +169,18 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
   void _onPanUpdate(DragUpdateDetails details) {
     var dy = details.globalPosition.dy - _centerOfChild.dy;
     var dx = details.globalPosition.dx - _centerOfChild.dx;
-    var newMouseAngle = Angle.radians(-math.atan2(dy, dx));
 
+    var newMouseAngle = Angle.atan2(dy, dx);
     var movedAngle = _mouseAngle - newMouseAngle;
+    var newChildAngle = (_childAngle + movedAngle).normalized;
 
-    var newChildAngle = _childAngle - movedAngle;
-
-    var newChildAngleSnapped =
-        _snaps.where((snap) => AngleRange.fromDelta(snap, _snapDelta).isInRange(newChildAngle)).firstOrNull;
+    var newChildAngleSnapped = _snapRanges.where((s) => s.includesNormalized(newChildAngle)).firstOrNull?.mid;
 
     if (newChildAngleSnapped != null && newChildAngleSnapped != _childAngleSnapped) {
       widget.onSnap?.call(newChildAngleSnapped);
     }
 
     _controller.value = newChildAngle.radians;
-
-    if ((newChildAngle.degrees - _lastChangeAngle.degrees).abs() >= 1) {
-      _lastChangeAngle = newChildAngle;
-      widget.onAngleChanged?.call(newChildAngle);
-    }
 
     setState(() {
       _mouseAngle = newMouseAngle;
@@ -186,7 +192,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
   void _onPanEnd(DragEndDetails details) {
     if (widget.shouldSnapOnEnd && !_snaps.contains(_childAngleSnapped)) {
       Angle nearestSnap = _snaps.fold(_snaps[0], (previousValue, element) {
-        if (_childAngle.difference(element) < _childAngle.difference(previousValue)) {
+        if (Angle.getMinimalDistance(_childAngle, element) < Angle.getMinimalDistance(_childAngle, previousValue)) {
           return element;
         }
         return previousValue;
