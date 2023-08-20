@@ -24,6 +24,9 @@ class App extends StatelessWidget {
               ],
               snapDelta: Angle.degrees(5),
               shouldSnapOnEnd: true,
+              snapCurve: Curves.easeInExpo,
+              snapDuration: const Duration(seconds: 5),
+              shouldCalcRelativeSnapDuration: true,
               child: Stack(
                 alignment: Alignment.center,
                 children: [

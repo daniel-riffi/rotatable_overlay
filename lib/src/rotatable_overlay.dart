@@ -21,7 +21,11 @@ class RotatableOverlay extends StatefulWidget {
   final Widget child;
 
   /// Determines how long the animation will take if [shouldSnapOnEnd] is true.
-  final Duration snapBackDuration;
+  final Duration snapDuration;
+
+  final bool shouldCalcRelativeSnapDuration;
+
+  final Curve snapCurve;
 
   /// Callback that is called when the rotation snaps.
   final void Function(Angle)? onSnap;
@@ -37,7 +41,9 @@ class RotatableOverlay extends StatefulWidget {
     this.snaps,
     this.snapDelta,
     this.shouldSnapOnEnd = false,
-    this.snapBackDuration = const Duration(seconds: 2),
+    this.snapDuration = const Duration(seconds: 1),
+    this.shouldCalcRelativeSnapDuration = false,
+    this.snapCurve = Curves.linear,
     this.initialRotation,
     this.onSnap,
     this.onAngleChanged,
@@ -62,13 +68,19 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
   late List<Angle> _snaps;
   late List<AngleRange> _snapRanges;
 
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: widget.snapBackDuration, upperBound: 4 * math.pi);
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    lowerBound: 0,
+    upperBound: 4 * math.pi,
+  );
+
+  late final Animation<double> _animation;
 
   Offset _centerOfChild = Offset.zero;
 
   @override
   void initState() {
+    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack);
     _childAngle = widget.initialRotation ?? Angle.zero();
     _childAngleSnapped = widget.initialRotation;
     _lastChangeAngle = _childAngle;
@@ -144,7 +156,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
       child: AnimatedBuilder(
-        animation: _controller,
+        animation: _animation,
         builder: (_, child) {
           var angle = _controller.isAnimating ? Angle.radians(_controller.value) : _childAngleSnapped ?? _childAngle;
           return Transform.rotate(
@@ -209,7 +221,13 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
         }
       }
 
-      _controller.animateTo(snap);
+      var duration = widget.snapDuration;
+      if (widget.shouldCalcRelativeSnapDuration) {
+        final minimalDistance = Angle.getMinimalDistance(_childAngle, nearestSnap);
+        duration = Duration(milliseconds: (minimalDistance.radians / (2 * math.pi) * widget.snapDuration.inMilliseconds).toInt());
+      }
+
+      _controller.animateTo(snap, duration: duration, curve: widget.snapCurve);
     }
   }
 }
