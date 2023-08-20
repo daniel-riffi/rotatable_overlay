@@ -1,4 +1,7 @@
-## 0.0.5
+## 0.0.7
+- readme update
+
+## 0.0.6
 - added snap curve and relative & absolute snap duration
 
 ## 0.0.5
