@@ -1,4 +1,7 @@
 ## 0.0.5
+- added snap curve and relative & absolute snap duration
+
+## 0.0.5
 - moved Angle and AngleRange class to angle_utils package
 
 ## 0.0.4

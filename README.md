@@ -25,7 +25,9 @@ RotatableOverlay(
 | `snaps` | A list of angles to which the rotation snaps |
 | `snapDelta` | Determines how close the rotation has to be to a snap angle in order to snap |
 | `shouldSnapOnEnd` | If `true` the rotation will animate to the nearest snap angle when stopped dragging |
-| `snapBackDuration` | Determines how long the animation will take if `shouldSnapOnEnd` is `true` |
+| `snapDuration` | Determines how long the animation will take if `shouldSnapOnEnd` is `true` |
+| `shouldUseRelativeSnapDuration` | Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate |
+| `snapCurve` | Determines the animation curve to the nearest snap angle |
 | `onSnap` | Callback that is called when the rotation snaps |
 | `onAngleChanged` | Callback that is called when the angle of the rotation changes |
 | `onSnapAnimationEnd` | Callback that is called when animation to the nearest snap angle is finished |
@@ -46,7 +48,6 @@ class App extends StatelessWidget {
         body: SafeArea(
           child: Center(
             child: RotatableOverlay(
-              initialRotation: Angle.zero,
               snaps: [
                 Angle.degrees(0),
                 Angle.degrees(90),
@@ -55,6 +56,7 @@ class App extends StatelessWidget {
               ],
               snapDelta: Angle.degrees(5),
               shouldSnapOnEnd: true,
+              shouldUseRelativeSnapDuration: true,
               child: Stack(
                 alignment: Alignment.center,
                 children: [

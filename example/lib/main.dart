@@ -24,9 +24,7 @@ class App extends StatelessWidget {
               ],
               snapDelta: Angle.degrees(5),
               shouldSnapOnEnd: true,
-              snapCurve: Curves.easeInExpo,
-              snapDuration: const Duration(seconds: 5),
-              shouldCalcRelativeSnapDuration: true,
+              shouldUseRelativeSnapDuration: true,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -37,19 +35,27 @@ class App extends StatelessWidget {
                   ),
                   const Positioned(
                     top: 0,
-                    child: Text('N', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('N',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                   const Positioned(
                     right: 0,
-                    child: Text('E', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('E',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                   const Positioned(
                     left: 0,
-                    child: Text('W', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('W',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                   const Positioned(
                     bottom: 0,
-                    child: Text('S', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('S',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),

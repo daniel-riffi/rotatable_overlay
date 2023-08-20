@@ -20,11 +20,14 @@ class RotatableOverlay extends StatefulWidget {
   /// Child widget that will be rotatable.
   final Widget child;
 
-  /// Determines how long the animation will take if [shouldSnapOnEnd] is true.
+  /// Determines how long the animation will take if [shouldSnapOnEnd] is true and [shouldUseRelativeSnapDuration] is false.
+  /// If [shouldUseRelativeSnapDuration] is true, [snapDuration] determines how long the animation takes for 360 degrees.
   final Duration snapDuration;
 
-  final bool shouldCalcRelativeSnapDuration;
+  /// Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate
+  final bool shouldUseRelativeSnapDuration;
 
+  /// Determines the animation curve to the nearest snap angle
   final Curve snapCurve;
 
   /// Callback that is called when the rotation snaps.
@@ -42,14 +45,15 @@ class RotatableOverlay extends StatefulWidget {
     this.snapDelta,
     this.shouldSnapOnEnd = false,
     this.snapDuration = const Duration(seconds: 1),
-    this.shouldCalcRelativeSnapDuration = false,
+    this.shouldUseRelativeSnapDuration = false,
     this.snapCurve = Curves.linear,
     this.initialRotation,
     this.onSnap,
     this.onAngleChanged,
     this.onSnapAnimationEnd,
     required this.child,
-  }) : assert(shouldSnapOnEnd && (snaps?.isNotEmpty ?? false) || !shouldSnapOnEnd);
+  }) : assert(shouldSnapOnEnd && (snaps?.isNotEmpty ?? false) || !shouldSnapOnEnd,
+            'Snaps must not be empty if shouldSnapOnEnd is true');
 
   @override
   State<RotatableOverlay> createState() => _RotatableOverlayState();
@@ -70,17 +74,13 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
 
   late final AnimationController _controller = AnimationController(
     vsync: this,
-    lowerBound: 0,
     upperBound: 4 * math.pi,
   );
-
-  late final Animation<double> _animation;
 
   Offset _centerOfChild = Offset.zero;
 
   @override
   void initState() {
-    _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack);
     _childAngle = widget.initialRotation ?? Angle.zero();
     _childAngleSnapped = widget.initialRotation;
     _lastChangeAngle = _childAngle;
@@ -156,7 +156,7 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
       onPanUpdate: _onPanUpdate,
       onPanEnd: _onPanEnd,
       child: AnimatedBuilder(
-        animation: _animation,
+        animation: _controller,
         builder: (_, child) {
           var angle = _controller.isAnimating ? Angle.radians(_controller.value) : _childAngleSnapped ?? _childAngle;
           return Transform.rotate(
@@ -203,31 +203,27 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
 
   void _onPanEnd(DragEndDetails details) {
     if (widget.shouldSnapOnEnd && !_snaps.contains(_childAngleSnapped)) {
-      Angle nearestSnap = _snaps.fold(_snaps[0], (previousValue, element) {
-        if (Angle.getMinimalDistance(_childAngle, element) < Angle.getMinimalDistance(_childAngle, previousValue)) {
-          return element;
-        }
-        return previousValue;
-      });
+      Angle snap = _childAngle.getClosest(_snaps);
 
-      double snap = nearestSnap.radians;
-
-      if ((_childAngle.radians - nearestSnap.radians).abs() > math.pi) {
+      if ((_childAngle - snap).abs() > Angle.half()) {
         // better to go over zero
-        if (_childAngle > nearestSnap) {
-          snap += 2 * math.pi;
+        if (_childAngle > snap) {
+          // needs to animate from quadrant IV to I
+          snap += Angle.full();
         } else {
+          // needs to animate from quadrant I to IV
           _controller.value += 2 * math.pi;
         }
       }
 
       var duration = widget.snapDuration;
-      if (widget.shouldCalcRelativeSnapDuration) {
-        final minimalDistance = Angle.getMinimalDistance(_childAngle, nearestSnap);
-        duration = Duration(milliseconds: (minimalDistance.radians / (2 * math.pi) * widget.snapDuration.inMilliseconds).toInt());
+      if (widget.shouldUseRelativeSnapDuration) {
+        final minDistance = Angle.getMinimalDistance(_childAngle, snap);
+        duration =
+            Duration(milliseconds: (minDistance.ratio(Angle.full()) * widget.snapDuration.inMilliseconds).toInt());
       }
 
-      _controller.animateTo(snap, duration: duration, curve: widget.snapCurve);
+      _controller.animateTo(snap.radians, duration: duration, curve: widget.snapCurve);
     }
   }
 }
