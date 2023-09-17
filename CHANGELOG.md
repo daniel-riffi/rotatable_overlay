@@ -1,3 +1,6 @@
+## 0.0.8
+- fixed code formatting
+
 ## 0.0.7
 - readme update
 

@@ -52,14 +52,16 @@ class RotatableOverlay extends StatefulWidget {
     this.onAngleChanged,
     this.onSnapAnimationEnd,
     required this.child,
-  }) : assert(shouldSnapOnEnd && (snaps?.isNotEmpty ?? false) || !shouldSnapOnEnd,
+  }) : assert(
+            shouldSnapOnEnd && (snaps?.isNotEmpty ?? false) || !shouldSnapOnEnd,
             'Snaps must not be empty if shouldSnapOnEnd is true');
 
   @override
   State<RotatableOverlay> createState() => _RotatableOverlayState();
 }
 
-class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerProviderStateMixin {
+class _RotatableOverlayState extends State<RotatableOverlay>
+    with SingleTickerProviderStateMixin {
   Angle _mouseAngle = Angle.zero();
 
   late Angle _childAngle;
@@ -90,11 +92,13 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
     _snaps = widget.snaps ?? [];
     _snaps.sort((a, b) => a.compareTo(b));
 
-    _snapRanges = _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
+    _snapRanges =
+        _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _centerOfChild = (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero) +
-          Offset((context.size!.width / 2), (context.size!.height / 2));
+      _centerOfChild =
+          (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero) +
+              Offset((context.size!.width / 2), (context.size!.height / 2));
     });
 
     _controller.addStatusListener((status) {
@@ -127,17 +131,20 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
     }
     if (oldWidget.snapDelta != widget.snapDelta) {
       _snapDelta = widget.snapDelta ?? Angle.zero();
-      _snapRanges = _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
+      _snapRanges =
+          _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
     }
     if (!listEquals(oldWidget.snaps, widget.snaps)) {
       _snaps = widget.snaps ?? [];
       _snaps.sort((a, b) => a.compareTo(b));
-      _snapRanges = _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
+      _snapRanges =
+          _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _centerOfChild = (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero) +
-          Offset((context.size!.width / 2), (context.size!.height / 2));
+      _centerOfChild =
+          (context.findRenderObject() as RenderBox).localToGlobal(Offset.zero) +
+              Offset((context.size!.width / 2), (context.size!.height / 2));
     });
 
     super.didUpdateWidget(oldWidget);
@@ -158,7 +165,9 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
       child: AnimatedBuilder(
         animation: _controller,
         builder: (_, child) {
-          var angle = _controller.isAnimating ? Angle.radians(_controller.value) : _childAngleSnapped ?? _childAngle;
+          var angle = _controller.isAnimating
+              ? Angle.radians(_controller.value)
+              : _childAngleSnapped ?? _childAngle;
           return Transform.rotate(
             angle: (Angle.full() - angle).radians,
             child: child,
@@ -186,9 +195,13 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
     var movedAngle = _mouseAngle - newMouseAngle;
     var newChildAngle = (_childAngle + movedAngle).normalized;
 
-    var newChildAngleSnapped = _snapRanges.where((s) => s.includesNormalized(newChildAngle)).firstOrNull?.mid;
+    var newChildAngleSnapped = _snapRanges
+        .where((s) => s.includesNormalized(newChildAngle))
+        .firstOrNull
+        ?.mid;
 
-    if (newChildAngleSnapped != null && newChildAngleSnapped != _childAngleSnapped) {
+    if (newChildAngleSnapped != null &&
+        newChildAngleSnapped != _childAngleSnapped) {
       widget.onSnap?.call(newChildAngleSnapped);
     }
 
@@ -219,11 +232,14 @@ class _RotatableOverlayState extends State<RotatableOverlay> with SingleTickerPr
       var duration = widget.snapDuration;
       if (widget.shouldUseRelativeSnapDuration) {
         final minDistance = Angle.getMinimalDistance(_childAngle, snap);
-        duration =
-            Duration(milliseconds: (minDistance.ratio(Angle.full()) * widget.snapDuration.inMilliseconds).toInt());
+        duration = Duration(
+            milliseconds: (minDistance.ratio(Angle.full()) *
+                    widget.snapDuration.inMilliseconds)
+                .toInt());
       }
 
-      _controller.animateTo(snap.radians, duration: duration, curve: widget.snapCurve);
+      _controller.animateTo(snap.radians,
+          duration: duration, curve: widget.snapCurve);
     }
   }
 }
