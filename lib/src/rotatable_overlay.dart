@@ -35,6 +35,9 @@ class RotatableOverlay extends StatefulWidget {
 
   /// Callback that is called when the angle of the rotation changes.
   final void Function(Angle)? onAngleChanged;
+  
+  /// Callback that is called when the pan gesture ends
+  final void Function(Angle)? onAngleChangedPanEnd;
 
   /// Callback that is called when animation to the nearest snap angle is finished.
   final VoidCallback? onSnapAnimationEnd;
@@ -50,6 +53,7 @@ class RotatableOverlay extends StatefulWidget {
     this.initialRotation,
     this.onSnap,
     this.onAngleChanged,
+    this.onAngleChangedPanEnd,
     this.onSnapAnimationEnd,
     required this.child,
   }) : assert(
@@ -241,5 +245,6 @@ class _RotatableOverlayState extends State<RotatableOverlay>
       _controller.animateTo(snap.radians,
           duration: duration, curve: widget.snapCurve);
     }
+    widget.onAngleChangedPanEnd?.call(_childAngle);
   }
 }
