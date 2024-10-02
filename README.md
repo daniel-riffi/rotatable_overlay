@@ -28,6 +28,7 @@ RotatableOverlay(
 | `snapCurve` | Determines the animation curve to the nearest snap angle |
 | `onSnap` | Callback that is called when the rotation snaps |
 | `onAngleChanged` | Callback that is called when the angle of the rotation changes |
+| `onAngleChangedPanEnd` | Callback that is called when the pan gesture ends |
 | `onSnapAnimationEnd` | Callback that is called when animation to the nearest snap angle is finished |
 
 ### Example

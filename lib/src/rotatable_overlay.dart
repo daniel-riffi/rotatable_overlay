@@ -27,7 +27,7 @@ class RotatableOverlay extends StatefulWidget {
   /// Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate
   final bool shouldUseRelativeSnapDuration;
 
-  /// Determines the animation curve to the nearest snap angle
+  /// Determines the animation curve to the nearest snap angle.
   final Curve snapCurve;
 
   /// Callback that is called when the rotation snaps.
@@ -36,7 +36,7 @@ class RotatableOverlay extends StatefulWidget {
   /// Callback that is called when the angle of the rotation changes.
   final void Function(Angle)? onAngleChanged;
   
-  /// Callback that is called when the pan gesture ends
+  /// Callback that is called when the pan gesture ends.
   final void Function(Angle, Angle?)? onAngleChangedPanEnd;
 
   /// Callback that is called when animation to the nearest snap angle is finished.
@@ -209,7 +209,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
 
     if (newChildAngleSnapped != null &&
         newChildAngleSnapped != _childAngleSnapped) {
-      // Angle is ocvered by a snap range and the snap angle
+      // Angle is covered by a snap range and the snap angle
       // differs from previous one
       widget.onSnap?.call(newChildAngleSnapped);
     }
