@@ -27,7 +27,7 @@ class RotatableOverlay extends StatefulWidget {
   /// Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate
   final bool shouldUseRelativeSnapDuration;
 
-  /// Determines the animation curve to the nearest snap angle
+  /// Determines the animation curve to the nearest snap angle.
   final Curve snapCurve;
 
   /// Callback that is called when the rotation snaps.
@@ -35,6 +35,9 @@ class RotatableOverlay extends StatefulWidget {
 
   /// Callback that is called when the angle of the rotation changes.
   final void Function(Angle)? onAngleChanged;
+  
+  /// Callback that is called when the pan gesture ends.
+  final void Function(Angle, Angle?)? onAngleChangedPanEnd;
 
   /// Callback that is called when animation to the nearest snap angle is finished.
   final VoidCallback? onSnapAnimationEnd;
@@ -50,6 +53,7 @@ class RotatableOverlay extends StatefulWidget {
     this.initialRotation,
     this.onSnap,
     this.onAngleChanged,
+    this.onAngleChangedPanEnd,
     this.onSnapAnimationEnd,
     required this.child,
   }) : assert(
@@ -92,6 +96,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
     _snaps = widget.snaps ?? [];
     _snaps.sort((a, b) => a.compareTo(b));
 
+    // Creates ranges from s-Delta to s+Delta
     _snapRanges =
         _snaps.map((s) => AngleRange.fromDelta(s, _snapDelta)).toList();
 
@@ -195,6 +200,8 @@ class _RotatableOverlayState extends State<RotatableOverlay>
     var movedAngle = _mouseAngle - newMouseAngle;
     var newChildAngle = (_childAngle + movedAngle).normalized;
 
+    // Middle of first snap range encompassing the angle (or null if no
+    // snap range covers it)
     var newChildAngleSnapped = _snapRanges
         .where((s) => s.includesNormalized(newChildAngle))
         .firstOrNull
@@ -202,6 +209,8 @@ class _RotatableOverlayState extends State<RotatableOverlay>
 
     if (newChildAngleSnapped != null &&
         newChildAngleSnapped != _childAngleSnapped) {
+      // Angle is covered by a snap range and the snap angle
+      // differs from previous one
       widget.onSnap?.call(newChildAngleSnapped);
     }
 
@@ -215,8 +224,11 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   }
 
   void _onPanEnd(DragEndDetails details) {
+    Angle? snap;
     if (widget.shouldSnapOnEnd && !_snaps.contains(_childAngleSnapped)) {
-      Angle snap = _childAngle.getClosest(_snaps);
+      // Pan gesture ended and we snap, but _childAngleSnapped is null,
+      // because current rotation is outside all defined snap ranges.
+      snap = _childAngle.getClosest(_snaps);
 
       if ((_childAngle - snap).abs() > Angle.half()) {
         // better to go over zero
@@ -241,5 +253,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
       _controller.animateTo(snap.radians,
           duration: duration, curve: widget.snapCurve);
     }
+    // Callback providing current rotation angle and snap angle
+    widget.onAngleChangedPanEnd?.call(_childAngle, snap);
   }
 }
