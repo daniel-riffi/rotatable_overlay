@@ -30,6 +30,8 @@ RotatableOverlay(
 | `onAngleChanged` | Callback that is called when the angle of the rotation changes |
 | `onAngleChangedPanEnd` | Callback that is called when the pan gesture ends |
 | `onSnapAnimationEnd` | Callback that is called when animation to the nearest snap angle is finished |
+| `applyInertia` | Whether to add inertia to the movement when stopped dragging |
+| `frictionCoefficient` | The friction coefficient to apply to inertia. |
 
 ### Example
 
@@ -56,6 +58,55 @@ class App extends StatelessWidget {
               snapDelta: Angle.degrees(5),
               shouldSnapOnEnd: true,
               shouldUseRelativeSnapDuration: true,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: 150,
+                    width: 150,
+                    color: Colors.green,
+                  ),
+                  const Positioned(
+                    top: 0,
+                    child: Text('N', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  const Positioned(
+                    right: 0,
+                    child: Text('E', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  const Positioned(
+                    left: 0,
+                    child: Text('W', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  const Positioned(
+                    bottom: 0,
+                    child: Text('S', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+#### Using inertia:
+```dart
+class App extends StatelessWidget {
+  const App({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: RotatableOverlay(
+              applyInertia: true,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
