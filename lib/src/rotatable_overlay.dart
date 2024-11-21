@@ -272,10 +272,12 @@ class _RotatableOverlayState extends State<RotatableOverlay>
           ? -details.velocity.pixelsPerSecond.distance / 100
           : details.velocity.pixelsPerSecond.distance / 100);
     }
+    
+    Angle? snap;
     if (widget.shouldSnapOnEnd && !_snaps.contains(_childAngleSnapped)) {
       // Pan gesture ended and we snap, but _childAngleSnapped is null,
       // because current rotation is outside all defined snap ranges.
-      Angle? snap;
+
       snap = _childAngle.getClosest(_snaps);
 
       if ((_childAngle - snap).abs() > Angle.half()) {
