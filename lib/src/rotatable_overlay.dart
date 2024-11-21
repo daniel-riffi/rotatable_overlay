@@ -143,20 +143,6 @@ class _RotatableOverlayState extends State<RotatableOverlay>
     super.initState();
   }
 
-  void _startInertiaAnimation(double velocity) {
-    _controller.stop();
-
-    // Create a friction simulation with the current angle and velocity
-    final simulation = FrictionSimulation(
-      widget.frictionCoefficient,
-      _childAngle.radians,
-      velocity,
-    );
-
-    // Animate using the simulation
-    _controller.animateWith(simulation);
-  }
-
   @override
   void didUpdateWidget(covariant RotatableOverlay oldWidget) {
     if (oldWidget.initialRotation != widget.initialRotation) {
@@ -234,7 +220,6 @@ class _RotatableOverlayState extends State<RotatableOverlay>
     // Calculate the current and previous pointer positions relative to the center
     var currentVector = details.globalPosition - _centerOfChild;
     var previousVector = Offset.fromDirection(_mouseAngle.radians);
-    // Calculate the cross product to determine the rotation direction
     var crossProduct = (previousVector.dx * currentVector.dy) -
         (previousVector.dy * currentVector.dx);
     // Determine the sign of rotation based on the cross product
@@ -312,5 +297,19 @@ class _RotatableOverlayState extends State<RotatableOverlay>
     }
     // Callback providing current rotation angle and snap angle
     widget.onAngleChangedPanEnd?.call(_childAngle, snap);
+  }
+
+  void _startInertiaAnimation(double velocity) {
+    _controller.stop();
+
+    // Create a friction simulation with the current angle and velocity
+    final simulation = FrictionSimulation(
+      widget.frictionCoefficient,
+      _childAngle.radians,
+      velocity,
+    );
+
+    // Animate using the simulation
+    _controller.animateWith(simulation);
   }
 }
