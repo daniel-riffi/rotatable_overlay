@@ -36,7 +36,7 @@ class RotatableOverlay extends StatefulWidget {
 
   /// Callback that is called when the angle of the rotation changes.
   final void Function(Angle)? onAngleChanged;
-
+  
   /// Callback that is called when the pan gesture ends.
   final void Function(Angle, Angle?)? onAngleChangedPanEnd;
 
