@@ -193,6 +193,35 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
+    // Get the RenderBox of the parent widget to calculate bounds
+    final parentBox = context.findRenderObject() as RenderBox;
+    final parentPosition = parentBox.localToGlobal(Offset.zero);
+    final parentSize = parentBox.size;
+
+    // Calculate the bounds of the parent widget
+    final parentBounds = Rect.fromLTWH(
+      parentPosition.dx,
+      parentPosition.dy,
+      parentSize.width,
+      parentSize.height,
+    );
+
+    // Check if the pointer is within the bounds
+    if (!parentBounds.contains(details.globalPosition)) {
+      return; // Ignore updates if the pointer is outside the parent's bounds
+    }
+
+    // Calculate the current and previous pointer positions relative to the center
+    var currentVector = details.globalPosition - _centerOfChild;
+    var previousVector = Offset.fromDirection(_mouseAngle.radians);
+
+    // Calculate the cross product to determine the rotation direction
+    var crossProduct = (previousVector.dx * currentVector.dy) -
+        (previousVector.dy * currentVector.dx);
+
+    // Determine the sign of rotation based on the cross product
+    var signOfRotation = crossProduct > 0 ? 1 : (crossProduct < 0 ? -1 : 0);
+
     var dy = details.globalPosition.dy - _centerOfChild.dy;
     var dx = details.globalPosition.dx - _centerOfChild.dx;
 
