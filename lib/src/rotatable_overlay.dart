@@ -263,16 +263,12 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   }
 
   void _onPanEnd(DragEndDetails details) {
-    // Check if we should apply inertia
     if (widget.applyInertia) {
-      // Avoid division by zero
-
-      // Start inertia animation with the calculated angular velocity
       _startInertiaAnimation(isRotationClockwise!
           ? -details.velocity.pixelsPerSecond.distance / 100
           : details.velocity.pixelsPerSecond.distance / 100);
     }
-    
+
     Angle? snap;
     if (widget.shouldSnapOnEnd && !_snaps.contains(_childAngleSnapped)) {
       // Pan gesture ended and we snap, but _childAngleSnapped is null,
