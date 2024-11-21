@@ -36,7 +36,7 @@ class RotatableOverlay extends StatefulWidget {
 
   /// Callback that is called when the angle of the rotation changes.
   final void Function(Angle)? onAngleChanged;
-  
+
   /// Callback that is called when the pan gesture ends.
   final void Function(Angle, Angle?)? onAngleChangedPanEnd;
 
@@ -48,6 +48,9 @@ class RotatableOverlay extends StatefulWidget {
 
   /// The friction coefficient to apply to inertia.
   final double frictionCoefficient;
+
+  /// Wether to limit drag to widget bounds (increase robustness of rotation sign determination)
+  final bool limitDragToBounds;
   RotatableOverlay({
     super.key,
     this.snaps,
@@ -63,6 +66,7 @@ class RotatableOverlay extends StatefulWidget {
     this.onSnapAnimationEnd,
     this.applyInertia = false,
     this.frictionCoefficient = 0.1,
+    this.limitDragToBounds = false,
     required this.child,
   }) : assert(
             shouldSnapOnEnd && (snaps?.isNotEmpty ?? false) || !shouldSnapOnEnd,
@@ -209,12 +213,14 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    // Ignore updates if the pointer is outside the widget's bounds
-    final size = context.size;
-    if (size == null) return;
-    final bounds = Offset.zero & size;
-    if (!bounds.contains(details.localPosition)) {
-      return;
+    if (widget.limitDragToBounds) {
+      // Ignore updates if the pointer is outside the widget's bounds
+      final size = context.size;
+      if (size == null) return;
+      final bounds = Offset.zero & size;
+      if (!bounds.contains(details.localPosition)) {
+        return;
+      }
     }
 
     // Calculate the current and previous pointer positions relative to the center
