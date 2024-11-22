@@ -25,7 +25,7 @@ class RotatableOverlay extends StatefulWidget {
   /// If [shouldUseRelativeSnapDuration] is true, [snapDuration] determines how long the animation takes for 360 degrees.
   final Duration snapDuration;
 
-  /// Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate
+  /// Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate.
   final bool shouldUseRelativeSnapDuration;
 
   /// Determines the animation curve to the nearest snap angle.
@@ -49,7 +49,7 @@ class RotatableOverlay extends StatefulWidget {
   /// The friction coefficient to apply to inertia.
   final double frictionCoefficient;
 
-  /// Wether to limit drag to widget bounds (increase robustness of rotation sign determination)
+  /// Whether to limit drag to widget bounds (increase robustness of rotation sign determination).
   final bool limitDragToBounds;
   RotatableOverlay({
     super.key,
@@ -92,19 +92,15 @@ class _RotatableOverlayState extends State<RotatableOverlay>
 
   late bool? isRotationClockwise;
 
-  late final AnimationController _controller = widget.applyInertia
-      ? AnimationController.unbounded(
-          vsync: this,
-        )
-      : AnimationController(
-          vsync: this,
-          upperBound: 4 * math.pi,
-        );
+  late final AnimationController _controller;
 
   Offset _centerOfChild = Offset.zero;
 
   @override
   void initState() {
+    _controller = AnimationController.unbounded(
+      vsync: this,
+    );
     _childAngle = widget.initialRotation ?? Angle.zero();
     _childAngleSnapped = widget.initialRotation;
     _lastChangeAngle = _childAngle;
