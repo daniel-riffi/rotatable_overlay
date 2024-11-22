@@ -260,9 +260,12 @@ class _RotatableOverlayState extends State<RotatableOverlay>
 
   void _onPanEnd(DragEndDetails details) {
     if (widget.applyInertia) {
-      _startInertiaAnimation(isRotationClockwise!
+      final rotationDirection =
+          isRotationClockwise ?? true; // Default to true if null
+      final velocity = rotationDirection
           ? -details.velocity.pixelsPerSecond.distance / 100
-          : details.velocity.pixelsPerSecond.distance / 100);
+          : details.velocity.pixelsPerSecond.distance / 100;
+      _startInertiaAnimation(velocity);
     }
 
     Angle? snap;
