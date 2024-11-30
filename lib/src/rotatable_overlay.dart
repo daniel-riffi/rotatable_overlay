@@ -200,6 +200,9 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   }
 
   void _onPanStart(DragStartDetails details) {
+    // Stop any ongoing animations to prevent conflicts
+    _controller.stop();
+
     var dy = details.globalPosition.dy - _centerOfChild.dy;
     var dx = details.globalPosition.dx - _centerOfChild.dx;
     var newMouseAngle = Angle.atan2(dy, dx);
