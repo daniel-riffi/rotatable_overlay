@@ -96,6 +96,8 @@ class _RotatableOverlayState extends State<RotatableOverlay>
 
   Offset _centerOfChild = Offset.zero;
 
+  bool startingAnimation = true;
+
   @override
   void initState() {
     _controller = AnimationController.unbounded(
@@ -202,6 +204,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   void _onPanStart(DragStartDetails details) {
     // Stop any ongoing animations to prevent conflicts
     _controller.stop();
+    startingAnimation = true;
 
     var dy = details.globalPosition.dy - _centerOfChild.dy;
     var dx = details.globalPosition.dx - _centerOfChild.dx;
@@ -222,14 +225,18 @@ class _RotatableOverlayState extends State<RotatableOverlay>
       }
     }
 
-    // Calculate the current and previous pointer positions relative to the center
-    var currentVector = details.globalPosition - _centerOfChild;
-    var previousVector = Offset.fromDirection(_mouseAngle.radians);
-    var crossProduct = (previousVector.dx * currentVector.dy) -
-        (previousVector.dy * currentVector.dx);
-    // Determine the sign of rotation based on the cross product
-    isRotationClockwise =
-        crossProduct > 0 ? true : (crossProduct < 0 ? false : null);
+    if (startingAnimation) {
+      // Calculate the current and previous pointer positions relative to the center
+      var currentVector = details.globalPosition - _centerOfChild;
+      var previousVector = Offset.fromDirection(_mouseAngle.radians);
+      var crossProduct = (previousVector.dx * currentVector.dy) -
+          (previousVector.dy * currentVector.dx);
+      // Determine the sign of rotation based on the cross product
+      isRotationClockwise =
+          crossProduct > 0 ? true : (crossProduct < 0 ? false : null);
+
+      startingAnimation = false;
+    }
 
     var dy = details.globalPosition.dy - _centerOfChild.dy;
     var dx = details.globalPosition.dx - _centerOfChild.dx;
