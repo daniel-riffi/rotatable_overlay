@@ -1,3 +1,6 @@
+## 0.0.10
+- fixed code formatting
+
 ## 0.0.9
 - added onAngleChangedPanEnd callback
 
