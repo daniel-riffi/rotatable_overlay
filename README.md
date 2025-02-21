@@ -31,7 +31,7 @@ RotatableOverlay(
 | `onAngleChangedPanEnd` | Callback that is called when the pan gesture ends |
 | `onSnapAnimationEnd` | Callback that is called when animation to the nearest snap angle is finished |
 | `applyInertia` | Whether to add inertia to the movement when stopped dragging |
-| `frictionCoefficient` | The friction coefficient to apply to inertia. |
+| `frictionCoefficient` | The friction coefficient to apply to inertia |
 | `limitDragToBounds` | Wether to limit drag to widget bounds (increase robustness of rotation sign determination) |
 
 ### Example
@@ -108,7 +108,6 @@ class App extends StatelessWidget {
           child: Center(
             child: RotatableOverlay(
               applyInertia: true,
-              limitDragToBounds: true,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -144,7 +143,6 @@ class App extends StatelessWidget {
 }
 ```
 
-### Contact
+### Bugs & Features
 
-If you find any bugs or have ideas for new features, feel free to send me an email! 👋 \
-📧 riffert.daniel@gmail.com
+If you find any bugs or have ideas for new features, feel free to open an issue! 👋

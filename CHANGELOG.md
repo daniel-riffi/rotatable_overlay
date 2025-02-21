@@ -1,3 +1,6 @@
+## 0.0.11
+- added inertia
+
 ## 0.0.10
 - fixed code formatting
 

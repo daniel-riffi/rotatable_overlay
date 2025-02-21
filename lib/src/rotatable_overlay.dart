@@ -51,6 +51,7 @@ class RotatableOverlay extends StatefulWidget {
 
   /// Whether to limit drag to widget bounds (increase robustness of rotation sign determination).
   final bool limitDragToBounds;
+
   RotatableOverlay({
     super.key,
     this.snaps,
@@ -90,13 +91,11 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   late List<Angle> _snaps;
   late List<AngleRange> _snapRanges;
 
-  late bool? isRotationClockwise;
+  late bool? _isRotationClockwise;
 
   late final AnimationController _controller;
 
   Offset _centerOfChild = Offset.zero;
-
-  bool startingAnimation = true;
 
   @override
   void initState() {
@@ -140,7 +139,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
       }
     });
 
-    isRotationClockwise = null;
+    _isRotationClockwise = null;
 
     super.initState();
   }
@@ -188,7 +187,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (_, child) {
-          var angle = _controller.isAnimating
+          final angle = _controller.isAnimating
               ? Angle.radians(_controller.value)
               : _childAngleSnapped ?? _childAngle;
           return Transform.rotate(
@@ -204,11 +203,10 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   void _onPanStart(DragStartDetails details) {
     // Stop any ongoing animations to prevent conflicts
     _controller.stop();
-    startingAnimation = true;
 
-    var dy = details.globalPosition.dy - _centerOfChild.dy;
-    var dx = details.globalPosition.dx - _centerOfChild.dx;
-    var newMouseAngle = Angle.atan2(dy, dx);
+    final dy = details.globalPosition.dy - _centerOfChild.dy;
+    final dx = details.globalPosition.dx - _centerOfChild.dx;
+    final newMouseAngle = Angle.atan2(dy, dx);
     setState(() {
       _mouseAngle = newMouseAngle;
     });
@@ -225,29 +223,24 @@ class _RotatableOverlayState extends State<RotatableOverlay>
       }
     }
 
-    if (startingAnimation) {
-      // Calculate the current and previous pointer positions relative to the center
-      var currentVector = details.globalPosition - _centerOfChild;
-      var previousVector = Offset.fromDirection(_mouseAngle.radians);
-      var crossProduct = (previousVector.dx * currentVector.dy) -
-          (previousVector.dy * currentVector.dx);
-      // Determine the sign of rotation based on the cross product
-      isRotationClockwise =
-          crossProduct > 0 ? true : (crossProduct < 0 ? false : null);
+    final currentVector = details.globalPosition - _centerOfChild;
+    final previousVector = Offset.fromDirection(_mouseAngle.radians);
+    final crossProduct = (previousVector.dx * currentVector.dy) -
+        (previousVector.dy * currentVector.dx);
+    // Determine the sign of rotation based on the cross product
+    _isRotationClockwise =
+        crossProduct > 0 ? true : (crossProduct < 0 ? false : null);
 
-      startingAnimation = false;
-    }
+    final dy = details.globalPosition.dy - _centerOfChild.dy;
+    final dx = details.globalPosition.dx - _centerOfChild.dx;
 
-    var dy = details.globalPosition.dy - _centerOfChild.dy;
-    var dx = details.globalPosition.dx - _centerOfChild.dx;
-
-    var newMouseAngle = Angle.atan2(dy, dx);
-    var movedAngle = _mouseAngle - newMouseAngle;
-    var newChildAngle = (_childAngle + movedAngle).normalized;
+    final newMouseAngle = Angle.atan2(dy, dx);
+    final movedAngle = _mouseAngle - newMouseAngle;
+    final newChildAngle = (_childAngle + movedAngle).normalized;
 
     // Middle of first snap range encompassing the angle (or null if no
     // snap range covers it)
-    var newChildAngleSnapped = _snapRanges
+    final newChildAngleSnapped = _snapRanges
         .where((s) => s.includesNormalized(newChildAngle))
         .firstOrNull
         ?.mid;
@@ -271,7 +264,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   void _onPanEnd(DragEndDetails details) {
     if (widget.applyInertia) {
       final rotationDirection =
-          isRotationClockwise ?? true; // Default to true if null
+          _isRotationClockwise ?? true; // Default to true if null
       final velocity = rotationDirection
           ? -details.velocity.pixelsPerSecond.distance / 100
           : details.velocity.pixelsPerSecond.distance / 100;
