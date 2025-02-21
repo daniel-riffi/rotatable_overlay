@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:angle_utils/angle_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 
 /// A flutter widget that makes its child rotatable by dragging around its center.
 class RotatableOverlay extends StatefulWidget {
@@ -24,7 +25,7 @@ class RotatableOverlay extends StatefulWidget {
   /// If [shouldUseRelativeSnapDuration] is true, [snapDuration] determines how long the animation takes for 360 degrees.
   final Duration snapDuration;
 
-  /// Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate
+  /// Whether the duration of the snap animation is constant or it should be calculated based on the relative angle it has to rotate.
   final bool shouldUseRelativeSnapDuration;
 
   /// Determines the animation curve to the nearest snap angle.
@@ -42,6 +43,15 @@ class RotatableOverlay extends StatefulWidget {
   /// Callback that is called when animation to the nearest snap angle is finished.
   final VoidCallback? onSnapAnimationEnd;
 
+  /// Whether to add inertia to the movement when stopped dragging.
+  final bool applyInertia;
+
+  /// The friction coefficient to apply to inertia.
+  final double frictionCoefficient;
+
+  /// Whether to limit drag to widget bounds (increase robustness of rotation sign determination).
+  final bool limitDragToBounds;
+
   RotatableOverlay({
     super.key,
     this.snaps,
@@ -55,6 +65,9 @@ class RotatableOverlay extends StatefulWidget {
     this.onAngleChanged,
     this.onAngleChangedPanEnd,
     this.onSnapAnimationEnd,
+    this.applyInertia = false,
+    this.frictionCoefficient = 0.1,
+    this.limitDragToBounds = false,
     required this.child,
   }) : assert(
             shouldSnapOnEnd && (snaps?.isNotEmpty ?? false) || !shouldSnapOnEnd,
@@ -78,15 +91,17 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   late List<Angle> _snaps;
   late List<AngleRange> _snapRanges;
 
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    upperBound: 4 * math.pi,
-  );
+  late bool? _isRotationClockwise;
+
+  late final AnimationController _controller;
 
   Offset _centerOfChild = Offset.zero;
 
   @override
   void initState() {
+    _controller = AnimationController.unbounded(
+      vsync: this,
+    );
     _childAngle = widget.initialRotation ?? Angle.zero();
     _childAngleSnapped = widget.initialRotation;
     _lastChangeAngle = _childAngle;
@@ -123,6 +138,8 @@ class _RotatableOverlayState extends State<RotatableOverlay>
         widget.onAngleChanged?.call(_childAngle);
       }
     });
+
+    _isRotationClockwise = null;
 
     super.initState();
   }
@@ -170,7 +187,7 @@ class _RotatableOverlayState extends State<RotatableOverlay>
       child: AnimatedBuilder(
         animation: _controller,
         builder: (_, child) {
-          var angle = _controller.isAnimating
+          final angle = _controller.isAnimating
               ? Angle.radians(_controller.value)
               : _childAngleSnapped ?? _childAngle;
           return Transform.rotate(
@@ -184,25 +201,46 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   }
 
   void _onPanStart(DragStartDetails details) {
-    var dy = details.globalPosition.dy - _centerOfChild.dy;
-    var dx = details.globalPosition.dx - _centerOfChild.dx;
-    var newMouseAngle = Angle.atan2(dy, dx);
+    // Stop any ongoing animations to prevent conflicts
+    _controller.stop();
+
+    final dy = details.globalPosition.dy - _centerOfChild.dy;
+    final dx = details.globalPosition.dx - _centerOfChild.dx;
+    final newMouseAngle = Angle.atan2(dy, dx);
     setState(() {
       _mouseAngle = newMouseAngle;
     });
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
-    var dy = details.globalPosition.dy - _centerOfChild.dy;
-    var dx = details.globalPosition.dx - _centerOfChild.dx;
+    if (widget.limitDragToBounds) {
+      // Ignore updates if the pointer is outside the widget's bounds
+      final size = context.size;
+      if (size == null) return;
+      final bounds = Offset.zero & size;
+      if (!bounds.contains(details.localPosition)) {
+        return;
+      }
+    }
 
-    var newMouseAngle = Angle.atan2(dy, dx);
-    var movedAngle = _mouseAngle - newMouseAngle;
-    var newChildAngle = (_childAngle + movedAngle).normalized;
+    final currentVector = details.globalPosition - _centerOfChild;
+    final previousVector = Offset.fromDirection(_mouseAngle.radians);
+    final crossProduct = (previousVector.dx * currentVector.dy) -
+        (previousVector.dy * currentVector.dx);
+    // Determine the sign of rotation based on the cross product
+    _isRotationClockwise =
+        crossProduct > 0 ? true : (crossProduct < 0 ? false : null);
+
+    final dy = details.globalPosition.dy - _centerOfChild.dy;
+    final dx = details.globalPosition.dx - _centerOfChild.dx;
+
+    final newMouseAngle = Angle.atan2(dy, dx);
+    final movedAngle = _mouseAngle - newMouseAngle;
+    final newChildAngle = (_childAngle + movedAngle).normalized;
 
     // Middle of first snap range encompassing the angle (or null if no
     // snap range covers it)
-    var newChildAngleSnapped = _snapRanges
+    final newChildAngleSnapped = _snapRanges
         .where((s) => s.includesNormalized(newChildAngle))
         .firstOrNull
         ?.mid;
@@ -224,10 +262,20 @@ class _RotatableOverlayState extends State<RotatableOverlay>
   }
 
   void _onPanEnd(DragEndDetails details) {
+    if (widget.applyInertia) {
+      final rotationDirection =
+          _isRotationClockwise ?? true; // Default to true if null
+      final velocity = rotationDirection
+          ? -details.velocity.pixelsPerSecond.distance / 100
+          : details.velocity.pixelsPerSecond.distance / 100;
+      _startInertiaAnimation(velocity);
+    }
+
     Angle? snap;
     if (widget.shouldSnapOnEnd && !_snaps.contains(_childAngleSnapped)) {
       // Pan gesture ended and we snap, but _childAngleSnapped is null,
       // because current rotation is outside all defined snap ranges.
+
       snap = _childAngle.getClosest(_snaps);
 
       if ((_childAngle - snap).abs() > Angle.half()) {
@@ -255,5 +303,19 @@ class _RotatableOverlayState extends State<RotatableOverlay>
     }
     // Callback providing current rotation angle and snap angle
     widget.onAngleChangedPanEnd?.call(_childAngle, snap);
+  }
+
+  void _startInertiaAnimation(double velocity) {
+    _controller.stop();
+
+    // Create a friction simulation with the current angle and velocity
+    final simulation = FrictionSimulation(
+      widget.frictionCoefficient,
+      _childAngle.radians,
+      velocity,
+    );
+
+    // Animate using the simulation
+    _controller.animateWith(simulation);
   }
 }

@@ -30,6 +30,9 @@ RotatableOverlay(
 | `onAngleChanged` | Callback that is called when the angle of the rotation changes |
 | `onAngleChangedPanEnd` | Callback that is called when the pan gesture ends |
 | `onSnapAnimationEnd` | Callback that is called when animation to the nearest snap angle is finished |
+| `applyInertia` | Whether to add inertia to the movement when stopped dragging |
+| `frictionCoefficient` | The friction coefficient to apply to inertia |
+| `limitDragToBounds` | Wether to limit drag to widget bounds (increase robustness of rotation sign determination) |
 
 ### Example
 
@@ -91,7 +94,55 @@ class App extends StatelessWidget {
 }
 ```
 
-### Contact
+#### Using inertia:
+```dart
+class App extends StatelessWidget {
+  const App({super.key});
 
-If you find any bugs or have ideas for new features, feel free to send me an email! 👋 \
-📧 riffert.daniel@gmail.com
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: RotatableOverlay(
+              applyInertia: true,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: 150,
+                    width: 150,
+                    color: Colors.green,
+                  ),
+                  const Positioned(
+                    top: 0,
+                    child: Text('N', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  const Positioned(
+                    right: 0,
+                    child: Text('E', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  const Positioned(
+                    left: 0,
+                    child: Text('W', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                  const Positioned(
+                    bottom: 0,
+                    child: Text('S', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Bugs & Features
+
+If you find any bugs or have ideas for new features, feel free to open an issue! 👋
